@@ -1,0 +1,77 @@
+name: eye-of-horus-render
+on:
+  push:
+    branches: [render/eye-of-horus]
+  workflow_dispatch:
+env:
+  BL: blender-5.2.3-linux-x64
+  OUT: out
+  ASSETS: assets
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: c
+        with: {path: blender-5.2.3-linux-x64, key: blender-5.2.3}
+      - if: steps.c.outputs.cache-hit != 'true'
+        run: curl -sfL https://download.blender.org/release/Blender5.2/$BL.tar.xz | tar xJ
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgl1 libxkbcommon0 libsm6 libxi6 libxrender1 libxxf86vm1 libxfixes3 >/dev/null
+      - run: |
+          mkdir -p out assets
+          curl -sfL -o assets/studio.hdr https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/studio_small_09_2k.hdr || true
+          ./$BL/blender -b --python gun.py 2>&1 | tail -20
+          ./$BL/blender -b out/eye_of_horus.blend --python clay.py 2>&1 | grep -E "CLAY|Error|rror" || true
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with: {name: clay, path: "out/*.png"}
+      - uses: actions/upload-artifact@v4
+        with: {name: blend, path: "out/eye_of_horus.blend"}
+      - uses: actions/upload-artifact@v4
+        with: {name: hdr, path: assets}
+  stills:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy: {matrix: {shot: [left, right, close, hero]}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with: {path: blender-5.2.3-linux-x64, key: blender-5.2.3}
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgl1 libxkbcommon0 libsm6 libxi6 libxrender1 libxxf86vm1 libxfixes3 >/dev/null
+      - uses: actions/download-artifact@v4
+        with: {name: blend, path: out}
+      - uses: actions/download-artifact@v4
+        with: {name: hdr, path: assets}
+      - run: ./$BL/blender -b out/eye_of_horus.blend --python render.py -- stills ${{ matrix.shot }} 2>&1 | tail -5
+      - uses: actions/upload-artifact@v4
+        with: {name: "still-${{ matrix.shot }}", path: "out/still_*.png"}
+  anim:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy: {matrix: {chunk: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with: {path: blender-5.2.3-linux-x64, key: blender-5.2.3}
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgl1 libxkbcommon0 libsm6 libxi6 libxrender1 libxxf86vm1 libxfixes3 >/dev/null
+      - uses: actions/download-artifact@v4
+        with: {name: blend, path: out}
+      - uses: actions/download-artifact@v4
+        with: {name: hdr, path: assets}
+      - run: |
+          S=$(( ${{ matrix.chunk }} * 15 + 1 )); E=$(( S + 14 ))
+          ./$BL/blender -b out/eye_of_horus.blend --python render.py -- anim $S $E 2>&1 | grep -E "Saved|rror" | tail -20
+      - uses: actions/upload-artifact@v4
+        with: {name: "frames-${{ matrix.chunk }}", path: "out/f_*.png"}
+  encode:
+    needs: anim
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {pattern: "frames-*", path: fr, merge-multiple: true}
+      - run: |
+          sudo apt-get install -y -qq ffmpeg >/dev/null
+          ffmpeg -y -framerate 24 -i fr/f_%04d.png -c:v libx264 -pix_fmt yuv420p -crf 17 -preset slow eye_of_horus.mp4
+      - uses: actions/upload-artifact@v4
+        with: {name: video, path: eye_of_horus.mp4}
