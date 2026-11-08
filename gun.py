@@ -249,7 +249,7 @@ screw('GripScrew', (-30, -15.2, -120), 'Y', 3.2)
 # ======================= 05 STOCK =======================
 CUR[0] = part('stock')
 stk = side('Stock', [(-38, 26), (-110, 30), (-200, 32), (-330, 40), (-346, 40), (-346, -92), (-330, -92), (-250, -76), (-160, -58), (-110, -50), (-38, -38)],
-           -18, 18, 'white', bevel=8, seg=5, r=[4, 20, 20, 6, 3, 3, 6, 20, 20, 12, 4])
+           -18, 18, 'white', bevel=12, seg=6, r=[4, 20, 20, 6, 3, 3, 6, 20, 20, 12, 4])
 cut(stk, side('cut_thumb', [(-128, -12), (-250, -24), (-300, -30), (-300, -62), (-250, -60), (-150, -44)], -40, 40, None, r=10, cutter=True))
 side('CheekRiser', [(-130, 30), (-310, 38), (-312, 48), (-140, 42)], -15, 15, 'white', bevel=5, seg=4, r=5)
 side('RecoilPad', [(-346, 42), (-372, 44), (-376, 30), (-376, -86), (-372, -96), (-346, -94)], -19, 19, 'rubber', bevel=5, seg=4, r=4)
@@ -440,4 +440,9 @@ sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'
 sc.cycles.samples = 40; sc.cycles.use_denoising = True; sc.cycles.adaptive_threshold = 0.03; sc.cycles.max_bounces = 6
 r.image_settings.file_format = 'PNG'
 bpy.ops.wm.save_as_mainfile(filepath=os.environ.get('OUT', '.') + '/eye_of_horus.blend')
+dg = bpy.context.evaluated_depsgraph_get()
+for o in bpy.data.objects:
+    if o.type in ('MESH','CURVE','FONT') and not o.hide_render and o.name != 'Floor':
+        d = o.evaluated_get(dg).dimensions
+        if max(d) > 0.2: print('BIGOBJ', o.name, tuple(round(v,3) for v in d), tuple(round(v,3) for v in o.matrix_world.translation))
 print('BUILD_OK', len(bpy.data.objects))

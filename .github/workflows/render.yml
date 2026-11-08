@@ -21,7 +21,7 @@ jobs:
       - run: |
           mkdir -p out assets
           curl -sfL -o assets/studio.hdr https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/studio_small_09_2k.hdr || true
-          ./$BL/blender -b --python gun.py 2>&1 | grep -E 'BUILD_OK|rror|MOVEFAIL|Traceback|File "' | head -30
+          ./$BL/blender -b --python gun.py 2>&1 | grep -E 'BIGOBJ|BUILD_OK|rror|MOVEFAIL|Traceback|File "' | head -30
           ./$BL/blender -b out/eye_of_horus.blend --python clay.py 2>&1 | grep -E "CLAY|rror|MOVEFAIL|Traceback" || true
           ls -la out
       - run: for f in out/clay_*.png; do echo "URL $f $(curl -s -F file=@$f https://tmpfiles.org/api/v1/upload)"; done
