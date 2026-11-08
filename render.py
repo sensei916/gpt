@@ -7,7 +7,7 @@ sc.cycles.device = 'CPU'
 if mode == 'stills':
     sc.render.resolution_x, sc.render.resolution_y = 1920, 1080
     sc.cycles.samples = 128
-    shots = [('left', 'CamLeft', 121), ('right', 'CamWide', 121), ('close', 'CamClose', 150), ('hero', 'CamHero', 230)]
+    sys.path.insert(0, os.getcwd()); from shots import SHOTS as shots
     only = a[1]
     for n, c, f in shots:
         if n != only: continue
