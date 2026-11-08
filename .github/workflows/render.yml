@@ -24,10 +24,12 @@ jobs:
           ./$BL/blender -b --python gun.py 2>&1 | tail -20
           ./$BL/blender -b out/eye_of_horus.blend --python clay.py 2>&1 | grep -E "CLAY|Error|rror" || true
           ls -la out
+      - run: for f in out/clay_*.png; do echo "URL $f $(curl -s -F file=@$f https://tmpfiles.org/api/v1/upload)"; done
       - uses: actions/upload-artifact@v4
         with: {name: clay, path: "out/*.png"}
       - uses: actions/upload-artifact@v4
         with: {name: blend, path: "out/eye_of_horus.blend"}
+      - run: for f in out/eye_of_horus.blend; do echo "URL $f $(curl -s -F file=@$f https://tmpfiles.org/api/v1/upload)"; done
       - uses: actions/upload-artifact@v4
         with: {name: hdr, path: assets}
   stills:
@@ -44,6 +46,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with: {name: hdr, path: assets}
       - run: ./$BL/blender -b out/eye_of_horus.blend --python render.py -- stills ${{ matrix.shot }} 2>&1 | tail -5
+      - run: for f in out/still_*.png; do echo "URL $f $(curl -s -F file=@$f https://tmpfiles.org/api/v1/upload)"; done
       - uses: actions/upload-artifact@v4
         with: {name: "still-${{ matrix.shot }}", path: "out/still_*.png"}
   anim:
@@ -73,5 +76,6 @@ jobs:
       - run: |
           sudo apt-get install -y -qq ffmpeg >/dev/null
           ffmpeg -y -framerate 24 -i fr/f_%04d.png -c:v libx264 -pix_fmt yuv420p -crf 17 -preset slow eye_of_horus.mp4
+      - run: for f in eye_of_horus.mp4; do echo "URL $f $(curl -s -F file=@$f https://tmpfiles.org/api/v1/upload)"; done
       - uses: actions/upload-artifact@v4
         with: {name: video, path: eye_of_horus.mp4}
