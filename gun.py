@@ -117,11 +117,12 @@ for i in range(6):
     x = 22 - (i*13+22)*0.42
     box(f'GripTex{i}', x-4, x+3, -15.5, 15.5, z-4, z, 'poly', 1)
 # stock
-prism('Stock', [(-40,24),(-40,-40),(-120,-62),(-330,-98),(-346,-100),(-346,42),(-330,44),(-180,32),(-60,28)], 40, 'white', bevel=4)
-box('ButtPad', -372, -346, -22, 22, -102, 44, 'rubber', 4)
-box('StockStripe', -300, -296, -20.6, 20.6, -88, 38, 'pink', 0.4)
-cyl('AbydosEmblem', 'Y', (-235, 20.3, -2), 17, 1.2, 'pink', 64, 0.3)
-cyl('AbydosEmblemIn', 'Y', (-235, 21.0, -2), 12, 0.6, 'white', 64, 0.2)
+prism('Stock', [(-40,24),(-40,-38),(-90,-44),(-160,-56),(-330,-90),(-346,-92),(-346,38),(-330,40),(-200,30),(-60,27)], 36, 'white', bevel=5)
+prism('StockWristCut', [(-120,-20),(-250,-40),(-250,-60),(-150,-48)], 36.4, 'poly', bevel=1)
+box('ButtPad', -370, -346, -20, 20, -94, 40, 'rubber', 4)
+box('StockStripe', -300, -296, -18.6, 18.6, -80, 34, 'pink', 0.4)
+cyl('AbydosEmblem', 'Y', (-230, 18.3, -6), 15, 1.2, 'pink', 64, 0.3)
+cyl('AbydosEmblemIn', 'Y', (-230, 19.0, -6), 10.5, 0.6, 'white', 64, 0.2)
 # ---------------- barrel / mag ----------------
 xcyl('BarrelShoulder', 190, 214, 16)
 xcyl('Barrel', 214, 662, 11.5)
@@ -211,10 +212,10 @@ def camera(name, loc, target, lens=50, fstop=None, focus=None):
         c.dof.use_dof = True; c.dof.aperture_fstop = fstop; c.dof.focus_object = focus or t
     return o, t
 
-camWide, tWide = camera('CamWide', (0.15, -1.45, 0.25), (0.17, 0, -0.02), 50, 5.6)
-camClose, tClose = camera('CamClose', (0.20, -0.34, 0.07), (0.11, -0.01, 0.0), 70, 2.8)
-camHero, tHero = camera('CamHero', (0.85, -0.75, 0.18), (0.2, 0, 0), 85, 4.0)
-camLeft, tLeft = camera('CamLeft', (0.1, 1.45, 0.2), (0.15, 0, -0.03), 50, 5.6)
+camWide, tWide = camera('CamWide', (0.17, -1.95, 0.30), (0.17, 0, -0.02), 50, 5.6)
+camClose, tClose = camera('CamClose', (0.24, -0.42, 0.10), (0.10, -0.02, -0.01), 60, 2.8)
+camHero, tHero = camera('CamHero', (1.15, -0.95, 0.26), (0.12, 0, -0.03), 70, 4.0)
+camLeft, tLeft = camera('CamLeft', (0.17, 1.95, 0.25), (0.15, 0, -0.03), 50, 5.6)
 sc.camera = camWide
 
 # ---------------- animation ----------------
@@ -243,12 +244,12 @@ for o in [SHELL]:
     if o.animation_data and o.animation_data.action:
         pass
 # camera hero push-in 201-240
-key(camHero, 'location', 200, (0.85, -0.75, 0.18)); key(camHero, 'location', 240, (0.62, -0.55, 0.13))
+key(camHero, 'location', 200, (1.15, -0.95, 0.26)); key(camHero, 'location', 240, (0.98, -0.80, 0.22))
 # camera cuts
 for f, c in [(1, camWide), (121, camClose), (201, camHero)]:
     mk = sc.timeline_markers.new(f'cut{f}', frame=f); mk.camera = c
 # close cam slow drift
-key(camClose, 'location', 121, (0.22, -0.34, 0.07)); key(camClose, 'location', 200, (0.17, -0.31, 0.06))
+key(camClose, 'location', 121, (0.26, -0.43, 0.10)); key(camClose, 'location', 200, (0.20, -0.39, 0.09))
 
 # render
 r = sc.render; r.resolution_x, r.resolution_y = 1280, 720; r.resolution_percentage = 100
